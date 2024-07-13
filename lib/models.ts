@@ -1,8 +1,15 @@
-import mongoose from "mongoose";
-export type Colors = "red" | "blue" | "green" | "white" | "yellow" | "pink";
+import mongoose, { Document, Model } from "mongoose";
 
-// UserData Model
-const UserDataSchema = new mongoose.Schema({
+// UserData Interface
+interface IUserData extends Document {
+  id: string;
+  balance: number;
+  wins: number;
+  last_claimed_daily: Date | null;
+}
+
+// UserData Schema
+const UserDataSchema = new mongoose.Schema<IUserData>({
   id: {
     type: String,
     required: true,
@@ -22,16 +29,27 @@ const UserDataSchema = new mongoose.Schema({
   },
 });
 
-const Bets = [
-  {
-    userId: String,
-    global_name: String,
-    betAmount: Number,
-  },
-];
+// Bet Interface
+interface IBet {
+  userId: string;
+  global_name: string;
+  betAmount: number;
+}
 
-// BetSession Model
-const BetSessionSchema = new mongoose.Schema({
+// BetSession Interface
+interface IBetSession extends Document {
+  id: string;
+  guildId: string;
+  red: IBet[];
+  blue: IBet[];
+  green: IBet[];
+  white: IBet[];
+  yellow: IBet[];
+  pink: IBet[];
+}
+
+// BetSession Schema
+const BetSessionSchema = new mongoose.Schema<IBetSession>({
   id: {
     type: String,
     required: true,
@@ -42,16 +60,18 @@ const BetSessionSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
-  red: Bets,
-  blue: Bets,
-  green: Bets,
-  white: Bets,
-  yellow: Bets,
-  pink: Bets,
+  red: [{ userId: String, global_name: String, betAmount: Number }],
+  blue: [{ userId: String, global_name: String, betAmount: Number }],
+  green: [{ userId: String, global_name: String, betAmount: Number }],
+  white: [{ userId: String, global_name: String, betAmount: Number }],
+  yellow: [{ userId: String, global_name: String, betAmount: Number }],
+  pink: [{ userId: String, global_name: String, betAmount: Number }],
 });
 
-// Create models
-export const UserData =
-  mongoose.models.UserData || mongoose.model("UserData", UserDataSchema);
-export const BetSession =
-  mongoose.models.BetSession || mongoose.model("BetSession", BetSessionSchema);
+// Create models with type safety
+export const UserData: Model<IUserData> =
+  mongoose.models.UserData ||
+  mongoose.model<IUserData>("UserData", UserDataSchema);
+export const BetSession: Model<IBetSession> =
+  mongoose.models.BetSession ||
+  mongoose.model<IBetSession>("BetSession", BetSessionSchema);

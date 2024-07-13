@@ -1,15 +1,11 @@
 import { SlashCommandBuilder } from "@discordjs/builders";
 import { executeCommand } from "@/types";
 import dbConnect from "@/lib/mongodb";
-import { BetSession, Colors, UserData } from "@/lib/models";
-import { APIApplicationCommandInteractionDataRoleOption } from "discord.js";
-import {
-  EmbedFailedResponse,
-  EmbedSuccessBetResponse,
-} from "@/utils/embed-response";
+import { Embed } from "@/utils/embed-response";
 import { getUser } from "@/lib/Users";
 import { getBetSession } from "@/lib/BetSessions";
 import { getRandomSarcasticQuote } from "@/utils/sarcastic-quote";
+import { Colors } from "@/lib/game";
 // 🟨🟩🟪🟥🟦🟧
 export const register = new SlashCommandBuilder()
   .setName("bet")
@@ -38,9 +34,12 @@ export const execute: executeCommand = async (interaction) => {
 
   await dbConnect();
   // find user
-  const userid = interaction.member?.user.id;
-  if (!userid) return EmbedFailedResponse("User not found");
-  const user = await getUser(userid);
+  const userId = interaction.member?.user.id;
+  if (!userId) return Embed.error("User not found");
+  const global_name = interaction.member?.user.global_name;
+  if (!global_name) return Embed.error("User not found");
+
+  const user = await getUser(userId);
 
   //@ts-ignore
   const amount = interaction.data?.options?.find(
@@ -52,27 +51,27 @@ export const execute: executeCommand = async (interaction) => {
   )?.value as Colors;
 
   if (amount <= 0) {
-    return EmbedFailedResponse("Amount should be greater than 0");
+    return Embed.error("Amount should be greater than 0");
   }
 
   if (!amount || !color) {
-    return EmbedFailedResponse("Invalid input");
+    return Embed.error("Invalid input");
   }
 
   if (amount > user.balance) {
-    return EmbedFailedResponse("You don't have enough balance");
+    return Embed.error("You don't have enough balance");
   }
 
   // Find Bet Session or create new one
   if (!interaction.guild_id) {
-    return EmbedFailedResponse("Guild not found");
+    return Embed.error("Guild not found");
   }
   const betSession = await getBetSession(interaction.guild_id);
   // add bet
   //@ts-ignore
   betSession[color].push({
-    userId: interaction.member?.user.id,
-    global_name: interaction.member?.user.global_name,
+    userId,
+    global_name,
     betAmount: amount,
   });
 
@@ -84,7 +83,7 @@ export const execute: executeCommand = async (interaction) => {
 
   const username = interaction.member?.user.global_name || "User";
 
-  return EmbedSuccessBetResponse(
+  return Embed.betPlaced(
     `${interaction.member?.user.global_name} bets $${amount} on ${color}`,
     getRandomSarcasticQuote(username, "$" + amount, color) +
       "\n\n" +

@@ -3,6 +3,7 @@ import { PUBLIC_KEY } from "@/config";
 import getCommands from "@/utils/getCommands";
 import { NextResponse } from "next/server";
 import { verifyInteractionRequest } from "@/utils/verify-discord-request";
+import { UserData } from "@/lib/models";
 
 export async function POST(req: Request) {
   try {
