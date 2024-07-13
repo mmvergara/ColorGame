@@ -17,6 +17,7 @@ const getCommands = async () => {
   const commandDir = resolve(process.cwd(), "commands");
   const commandFiles = getTsFiles(commandDir);
   const commands: { [key: string]: commandModule } = {};
+  console.log(commandFiles);
   for (const file of commandFiles) {
     try {
       const fileContents = (await import(
@@ -24,6 +25,7 @@ const getCommands = async () => {
       )) as commandModule;
       if (fileContents) commands[file] = fileContents;
     } catch (error) {
+      console.log(error);
       continue;
     }
   }

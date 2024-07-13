@@ -13,6 +13,7 @@ export async function POST(req: Request) {
       (command) => command.register.toJSON()
     );
 
+
     const registerCommands = await discord_api.put(
       `/applications/${process.env.NEXT_PUBLIC_APPLICATION_ID!}/commands`,
       arrayOfSlashCommandsRegisterJSON
